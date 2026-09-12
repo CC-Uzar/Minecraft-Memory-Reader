@@ -244,11 +244,11 @@ void update_scan(MEMBLOCK*& mb_list, SEARCH_CONDITION condition, const vector<do
     }
 }
 
-void poke(HANDLE hProc, int data_size, unsigned addr, unsigned val) {
-    if (WriteProcessMemory(hProc, (void*)addr, &val, data_size, NULL) == 0) {
-        printf("poke failed\r\n");
-    }
-}
+// void poke(HANDLE hProc, int data_size, unsigned addr, unsigned val) {
+//     if (WriteProcessMemory(hProc, (void*)addr, &val, data_size, NULL) == 0) {
+//         printf("poke failed\r\n");
+//     }
+// }
 
 double peek (HANDLE hProc, int data_size, unsigned long long addr) {
     double val = 0.0;
