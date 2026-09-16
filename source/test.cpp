@@ -8,24 +8,12 @@
 
 using namespace std;
 
-enum SEARCH_CONDITION {
-    COND_UNCONDITIONAL,
-    COND_EQUALS,
-    COND_INCREASED,
-    COND_DECREASED,
-    COND_BETW
-};
-
 struct MEMBLOCK {
-    HANDLE hProc;
     unsigned char* addr;
     int size;
-    unsigned char* buffer;
     unsigned char *searchmask;
     int matches;
     int data_size;
-    MEMBLOCK* next;
-    MEMBLOCK* prev;
 };
 
 #define IS_IN_SEARCH(mb,offset) (mb->searchmask[(offset)/8] & (1<<((offset) % 8)))
