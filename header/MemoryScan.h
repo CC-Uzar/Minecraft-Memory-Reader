@@ -31,6 +31,7 @@ class MemoryScan {
         void createScan();
         void searchScan(size_t, size_t);
         void clearMisses();
+        void clearScan();
 
         size_t getMatchCount();
         std::vector<std::uintptr_t> getMatches();

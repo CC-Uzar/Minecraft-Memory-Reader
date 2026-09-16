@@ -51,6 +51,10 @@ void MemoryScan::createScan() {
     std::cout << "Duration to create: " << std::chrono::duration_cast<std::chrono::milliseconds>(end-start) << std::endl;
 }
 
+void MemoryScan::clearScan() {
+    mb_list.clear();
+}
+
 size_t MemoryScan::getMatchCount() {
     size_t matches = 0;
     for (const MEMBLOCK& mb : mb_list)
