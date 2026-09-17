@@ -49,6 +49,7 @@ void MemoryScan::createScan(bool debug) {
 
     if (debug) {
         auto end = std::chrono::high_resolution_clock::now();
+        std::cout << "Memory block count: " << mb_list.size() << std::endl;
         std::cout << "Duration to create: " << std::chrono::duration_cast<std::chrono::milliseconds>(end-start) << std::endl;
     }
 }
@@ -65,13 +66,14 @@ size_t MemoryScan::getMatchCount() {
 }
 
 void MemoryScan::searchScan(size_t first, size_t last, bool debug) {
+    if (debug) {
+        std::cout << "Started search from index " << first << " (inclusive) to " << last << " (non-inclusive).\n";
+    }
+
     if ((first < 0) || (last > mb_list.size())) throw InvalidIndex();
 
-
-
     auto start = std::chrono::high_resolution_clock::now();
-    if (debug)
-        std::cout << "Started search from index " << first << " (inclusive) to " << last << " (non-inclusive).\n";
+
 
     static unsigned char tempbuf[128*1024];
     for (size_t i = first; i < last; i++) {
@@ -119,11 +121,12 @@ void MemoryScan::searchScan(size_t first, size_t last, bool debug) {
 
     if (debug) {
         auto end = std::chrono::high_resolution_clock::now();
-        std::cout << "Duration to search: " << std::chrono::duration_cast<std::chrono::milliseconds>(end-start) << std::endl;
+        std::cout << "Duration to search from index " << first << " (inclusive) to " << last << " (non-inclusive): " << std::chrono::duration_cast<std::chrono::milliseconds>(end-start) << std::endl;
     }       
 }
 
 void MemoryScan::clearMisses(bool debug) {
+    size_t prevSize = mb_list.size();
     auto start = std::chrono::high_resolution_clock::now();
     mb_list.erase(std::remove_if(mb_list.begin(), mb_list.end(), [](MEMBLOCK& mb) {
         return mb.matches == 0;
@@ -131,6 +134,8 @@ void MemoryScan::clearMisses(bool debug) {
     mb_list.shrink_to_fit();
     if (debug) {
         auto end = std::chrono::high_resolution_clock::now();
+        std::cout << "Memory blocks deleted: " << prevSize - mb_list.size() << std::endl;
+        std::cout << "New memory block count: " << mb_list.size() << std::endl;
         std::cout << "Duration to delete: " << std::chrono::duration_cast<std::chrono::milliseconds>(end-start) << std::endl;
     }
    
