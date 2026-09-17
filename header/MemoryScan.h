@@ -28,9 +28,9 @@ class MemoryScan {
     public:
         void setPID(int);
         void setBounds(double, double);
-        void createScan();
+        void createScan(bool = false);
         void searchScan(size_t, size_t, bool = false);
-        void clearMisses();
+        void clearMisses(bool = false);
         void clearScan();
 
         size_t getMatchCount();

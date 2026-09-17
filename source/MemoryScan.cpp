@@ -23,7 +23,7 @@ void MemoryScan::setBounds(double l, double h) {
     max = h;
 }
 
-void MemoryScan::createScan() {
+void MemoryScan::createScan(bool debug) {
     if (hProc == NULL) throw InvalidPID();
 
     MEMORY_BASIC_INFORMATION meminfo;
@@ -47,8 +47,10 @@ void MemoryScan::createScan() {
         addr = (std::uintptr_t)meminfo.BaseAddress + meminfo.RegionSize;
     }
 
-    auto end = std::chrono::high_resolution_clock::now();
-    std::cout << "Duration to create: " << std::chrono::duration_cast<std::chrono::milliseconds>(end-start) << std::endl;
+    if (debug) {
+        auto end = std::chrono::high_resolution_clock::now();
+        std::cout << "Duration to create: " << std::chrono::duration_cast<std::chrono::milliseconds>(end-start) << std::endl;
+    }
 }
 
 void MemoryScan::clearScan() {
@@ -62,11 +64,14 @@ size_t MemoryScan::getMatchCount() {
     return matches;
 }
 
-void MemoryScan::searchScan(size_t first, size_t last, bool time) {
+void MemoryScan::searchScan(size_t first, size_t last, bool debug) {
     if ((first < 0) || (last > mb_list.size())) throw InvalidIndex();
 
-    auto start = std::chrono::high_resolution_clock::now();
 
+
+    auto start = std::chrono::high_resolution_clock::now();
+    if (debug)
+        std::cout << "Started search from index " << first << " (inclusive) to " << last << " (non-inclusive).\n";
 
     static unsigned char tempbuf[128*1024];
     for (size_t i = first; i < last; i++) {
@@ -112,20 +117,23 @@ void MemoryScan::searchScan(size_t first, size_t last, bool time) {
             mb->size = total_read;
     }
 
-    if (time) {
+    if (debug) {
         auto end = std::chrono::high_resolution_clock::now();
         std::cout << "Duration to search: " << std::chrono::duration_cast<std::chrono::milliseconds>(end-start) << std::endl;
     }       
 }
 
-void MemoryScan::clearMisses() {
+void MemoryScan::clearMisses(bool debug) {
     auto start = std::chrono::high_resolution_clock::now();
     mb_list.erase(std::remove_if(mb_list.begin(), mb_list.end(), [](MEMBLOCK& mb) {
         return mb.matches == 0;
     }), mb_list.end());
     mb_list.shrink_to_fit();
-    auto end = std::chrono::high_resolution_clock::now();
-    std::cout << "Duration to delete: " << std::chrono::duration_cast<std::chrono::milliseconds>(end-start) << std::endl;
+    if (debug) {
+        auto end = std::chrono::high_resolution_clock::now();
+        std::cout << "Duration to delete: " << std::chrono::duration_cast<std::chrono::milliseconds>(end-start) << std::endl;
+    }
+   
 }
 
 size_t MemoryScan::getSize() {
