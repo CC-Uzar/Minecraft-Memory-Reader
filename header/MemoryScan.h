@@ -29,7 +29,7 @@ class MemoryScan {
         void setPID(int);
         void setBounds(double, double);
         void createScan();
-        void searchScan(size_t, size_t);
+        void searchScan(size_t, size_t, bool = false);
         void clearMisses();
         void clearScan();
 

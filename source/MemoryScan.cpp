@@ -62,11 +62,13 @@ size_t MemoryScan::getMatchCount() {
     return matches;
 }
 
-void MemoryScan::searchScan(size_t first, size_t last) {
+void MemoryScan::searchScan(size_t first, size_t last, bool time) {
     if ((first < 0) || (last > mb_list.size())) throw InvalidIndex();
 
-    static unsigned char tempbuf[128*1024];
     auto start = std::chrono::high_resolution_clock::now();
+
+
+    static unsigned char tempbuf[128*1024];
     for (size_t i = first; i < last; i++) {
         MEMBLOCK* mb = &(mb_list.at(i));
 
@@ -109,9 +111,11 @@ void MemoryScan::searchScan(size_t first, size_t last) {
         if (mb->matches > 0)
             mb->size = total_read;
     }
-    auto end = std::chrono::high_resolution_clock::now();
 
-    std::cout << "Duration to search: " << std::chrono::duration_cast<std::chrono::milliseconds>(end-start) << std::endl;
+    if (time) {
+        auto end = std::chrono::high_resolution_clock::now();
+        std::cout << "Duration to search: " << std::chrono::duration_cast<std::chrono::milliseconds>(end-start) << std::endl;
+    }       
 }
 
 void MemoryScan::clearMisses() {
