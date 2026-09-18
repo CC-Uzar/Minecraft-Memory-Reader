@@ -2,6 +2,8 @@
 #include <iostream>
 
 ThreadPool::ThreadPool(size_t t) {
+    if (t == 0 || t > std::thread::hardware_concurrency()) throw InvalidThreadCount();
+
     thread_count = t;
     for (size_t i = 0; i < t; i++) {
         threads.emplace_back([this] {

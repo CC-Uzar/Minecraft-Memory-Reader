@@ -21,10 +21,12 @@ class ThreadPool {
 
 
     public:
-        ThreadPool(size_t = std::thread::hardware_concurrency());
+        ThreadPool(size_t = std::thread::hardware_concurrency() / 2);
         ~ThreadPool();
         void enqueue(std::function<void()>);
         size_t getThreadCount();
+
+        class InvalidThreadCount{};
         
 
 };

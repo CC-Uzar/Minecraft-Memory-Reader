@@ -1,12 +1,23 @@
 #include "MemoryScan.h"
+#include "ThreadPool.h"
 #include <iostream>
 #include <sstream>
 #include <string>
 #include <chrono>
 #include <algorithm>
+#include <latch>
 
 #define IS_IN_SEARCH(mb,offset) ((mb)->searchmask[(offset)/8] & (1<<((offset) % 8)))
 #define REMOVE_FROM_SEARCH(mb,offset) (mb)->searchmask[(offset)/8] &= ~(1<<((offset) % 8));
+
+MemoryScan::MemoryScan(size_t threads) {
+    if (threads > 0)
+        tpool = new ThreadPool(threads);
+}
+
+MemoryScan::~MemoryScan() {
+    delete tpool;
+}
 
 void MemoryScan::setPID(int p) {
     if (p < 0)
@@ -21,6 +32,10 @@ void MemoryScan::setBounds(double l, double h) {
 
     min = l;
     max = h;
+}
+
+void MemoryScan::setChunksPerThread(size_t chunks) {
+    chunkPerThread = chunks;
 }
 
 void MemoryScan::createScan(bool debug) {
@@ -65,7 +80,7 @@ size_t MemoryScan::getMatchCount() {
     return matches;
 }
 
-void MemoryScan::searchScan(size_t first, size_t last, bool debug) {
+void MemoryScan::searchChunk(size_t first, size_t last, bool debug) {
     if (debug) {
         std::cout << "Started search from index " << first << " (inclusive) to " << last << " (non-inclusive).\n";
     }
@@ -123,6 +138,47 @@ void MemoryScan::searchScan(size_t first, size_t last, bool debug) {
         auto end = std::chrono::high_resolution_clock::now();
         std::cout << "Duration to search from index " << first << " (inclusive) to " << last << " (non-inclusive): " << std::chrono::duration_cast<std::chrono::milliseconds>(end-start) << std::endl;
     }       
+}
+
+void MemoryScan::searchScan(bool debug) {
+    if (tpool) {
+        size_t tasks = tpool->getThreadCount() * chunkPerThread;
+        size_t chunk_size = mb_list.size() / tasks;
+        size_t leftover = mb_list.size() % tasks;
+        size_t start = 0;
+
+        std::latch block((chunk_size > 0 ? tasks : 1));
+
+        auto s = std::chrono::high_resolution_clock::now();
+
+        for (size_t i = 0; i < tasks && chunk_size > 0; i++) {
+            size_t size = chunk_size + (i < leftover ? 1 : 0);
+            size_t end = start + size;
+
+            tpool->enqueue([this, &block, start, end] {
+                searchChunk(start, end);
+                block.count_down();
+            });
+            start = end;
+        }
+
+        // Catch case when mb_list.size() < tasks
+        if (chunk_size == 0) {
+            tpool->enqueue([this, &block] {
+                searchChunk(0, mb_list.size());
+                block.count_down();
+            });
+        }
+        block.wait();
+
+        if (debug) {
+            auto e = std::chrono::high_resolution_clock::now();
+            std::cout << "Duration to scan all: " << std::chrono::duration_cast<std::chrono::milliseconds>(e-s) << std::endl;
+        }
+
+    } else {
+        searchChunk(0, mb_list.size(), debug);
+    }
 }
 
 void MemoryScan::clearMisses(bool debug) {
