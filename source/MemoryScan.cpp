@@ -141,6 +141,7 @@ void MemoryScan::searchChunk(size_t first, size_t last, bool debug) {
 }
 
 void MemoryScan::searchScan(bool debug) {
+    std::cout << "asdfasdf" << std::endl;
     if (tpool) {
         size_t tasks = tpool->getThreadCount() * chunkPerThread;
         size_t chunk_size = mb_list.size() / tasks;
@@ -177,6 +178,7 @@ void MemoryScan::searchScan(bool debug) {
         }
 
     } else {
+        std::cout << "hello" << std::endl;
         searchChunk(0, mb_list.size(), debug);
     }
 }

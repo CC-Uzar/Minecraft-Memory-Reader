@@ -25,7 +25,7 @@ class MemoryScan {
     private:
         std::vector<MEMBLOCK> mb_list;
         HANDLE hProc = NULL;
-        ThreadPool* tpool;
+        ThreadPool* tpool = nullptr;
 
         size_t chunkPerThread = 4;
         int pid = -1;
