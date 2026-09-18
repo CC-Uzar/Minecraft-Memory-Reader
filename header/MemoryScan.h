@@ -4,6 +4,9 @@
 #include <vector>
 #include <cstdint>
 #include <memory>
+#include <thread>
+
+
 
 struct MEMBLOCK {
     std::uintptr_t addr;
@@ -16,21 +19,33 @@ struct MEMBLOCK {
         addr(a), size(s), searchmask(std::move(sm)), matches(m), data_size(ds) {};
 };
 
+class ThreadPool;
+
 class MemoryScan {
     private:
         std::vector<MEMBLOCK> mb_list;
-        int pid = -1;
         HANDLE hProc = NULL;
+        ThreadPool* tpool = nullptr;
+
+        size_t chunkPerThread = 4;
+        int pid = -1;
         double min = 1.0;
         double max = -1.0;
         size_t data_size = 8;
 
+        void searchChunk(size_t, size_t, bool = false);
+
     public:
+        MemoryScan(size_t = 0);
+        ~MemoryScan();
+
         void setPID(int);
         void setBounds(double, double);
-        void createScan();
-        void searchScan(size_t, size_t);
-        void clearMisses();
+        void setChunksPerThread(size_t);
+
+        void createScan(bool = false);
+        void clearMisses(bool = false);
+        void searchScan(bool = false);
         void clearScan();
 
         size_t getMatchCount();
